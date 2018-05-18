@@ -1,9 +1,4 @@
-import yaml
-from stormer.logger import loglevel, logfile
-
-def parse_yaml(yamlfile):
-    with open(yamlfile) as stream:
-        return yaml.load(stream)
+from slocust.logger import loglevel, logfile
 
 
 class DummyOptions(object):
@@ -19,7 +14,8 @@ class DummyOptions(object):
         self.master_bind_host = "*"
         self.master_bind_port = 5557
         self.expect_slaves = 1
-        self.no_web = False
+        # TODO: no web didn't take effect
+        self.no_web = True
         self.num_clients = 1
         self.hatch_rate = 1
         self.num_requests = None
@@ -33,15 +29,18 @@ class DummyOptions(object):
         self.show_task_ratio_json = False
         self.show_version = False
 
+
 class DummyMasterOptions(DummyOptions):
     def __init__(self):
         super(DummyMasterOptions, self).__init__()
         self.master = True
 
+
 class DummySlaveOptions(DummyOptions):
     def __init__(self):
         super(DummySlaveOptions, self).__init__()
         self.slave = True
+
 
 master_options = DummyMasterOptions()
 slave_options = DummySlaveOptions()

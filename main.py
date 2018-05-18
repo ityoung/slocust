@@ -1,2 +1,2 @@
-from stormer import main
+from slocust import main
 main()

@@ -7,8 +7,8 @@ from locust import runners
 from locust import events, web
 from locust.main import version, load_locustfile
 from locust.stats import print_percentile_stats, print_error_report, print_stats
-from stormer.base import master_options, slave_options
-from stormer.logger import logger
+from slocust.base import master_options, slave_options
+from slocust.logger import logger
 
 def parse_locustfile(locustfile):
     docstring, locusts = load_locustfile(locustfile)
@@ -43,12 +43,14 @@ def start_slave(locust_classes):
 
 
 class LocustStarter(object):
-    def __init__(self, master_host, port, slave_only=False):
+    def __init__(self, api_host, master_host, port, num_clients, hatch_rate,
+                 slave_only=False):
         logger.info("Starting Locust %s" % version)
-        master_options.master_host = master_host
+        master_options.host = api_host
         master_options.port = port
+        master_options.num_clients = num_clients
+        master_options.hatch_rate = hatch_rate
         slave_options.master_host = master_host
-        slave_options.port = port
         self.slave_only = slave_only
 
     def start(self, locustfile, slaves_num):
