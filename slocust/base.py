@@ -23,7 +23,7 @@ class DummyOptions(object):
         self.logfile = logfile
         self.print_stats = False
         self.only_summary = False
-        self.no_reset_stats = False
+        self.reset_stats = False
         self.list_commands = False
         self.show_task_ratio = False
         self.show_task_ratio_json = False
