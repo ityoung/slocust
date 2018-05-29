@@ -1,25 +1,42 @@
-import gevent.monkey; gevent.monkey.patch_all()
+import gevent.monkey
+
+gevent.monkey.patch_all()
 import sys
+import time
 import multiprocessing
 import socket
-import gevent
+# import gevent
 from locust import runners
-from locust import events, web
+# from locust import events, web
+from locust import events
 from locust.main import version, load_locustfile
 from locust.stats import print_percentile_stats, print_error_report, print_stats
 from slocust.base import master_options, slave_options
 from slocust.logger import logger
+
 
 def parse_locustfile(locustfile):
     docstring, locusts = load_locustfile(locustfile)
     locust_classes = list(locusts.values())
     return locust_classes
 
-def start_master(locust_classes):
-    logger.info("Starting web monitor at {}:{}".format(
-        master_options.web_host or "*", master_options.port))
-    master_greenlet = gevent.spawn(web.start, locust_classes, master_options)
+
+def start_master(locust_classes, slaves_num):
+    # web
+    # logger.info("Starting web monitor at {}:{}".format(
+    #     master_options.web_host or "*", master_options.port))
+    # master_greenlet = gevent.spawn(web.start, locust_classes, master_options)
+    # no_web
+    # todo: run time
     runners.locust_runner = runners.MasterLocustRunner(locust_classes, master_options)
+    while len(runners.locust_runner.clients.ready) < slaves_num:
+        logger.info("Waiting for slaves to be ready, %s of %s connected",
+                    len(runners.locust_runner.clients.ready), slaves_num)
+        time.sleep(1)
+    logger.info("%s slave connected, start hatching",
+                len(runners.locust_runner.clients.ready))
+    runners.locust_runner.start_hatching(master_options.num_clients, master_options.hatch_rate)
+    master_greenlet = runners.locust_runner.greenlet
     try:
         master_greenlet.join()
     except KeyboardInterrupt:
@@ -28,6 +45,7 @@ def start_master(locust_classes):
         print_percentile_stats(runners.locust_runner.request_stats)
         print_error_report()
         sys.exit(0)
+
 
 def start_slave(locust_classes):
     runners.locust_runner = runners.SlaveLocustRunner(locust_classes, slave_options)
@@ -57,6 +75,7 @@ class LocustStarter(object):
         locust_classes = parse_locustfile(locustfile)
         slaves_num = slaves_num or multiprocessing.cpu_count()
 
+        logger.info("Starting %s slaves" % slaves_num)
         processes = []
         for _ in range(slaves_num):
             p_slave = multiprocessing.Process(target=start_slave, args=(locust_classes,))
@@ -68,6 +87,6 @@ class LocustStarter(object):
             if self.slave_only:
                 [process.join() for process in processes]
             else:
-                start_master(locust_classes)
+                start_master(locust_classes, slaves_num)
         except KeyboardInterrupt:
             sys.exit(0)
