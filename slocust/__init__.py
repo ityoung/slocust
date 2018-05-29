@@ -14,7 +14,8 @@ def main():
 
     parser.add_argument(
         '-f', '--locustfile',
-        help="Specify locust file to run test.")
+        default='locustfile.py',
+        help="Python module file to import, e.g. '../other.py'. Default: locustfile.py")
     # parser.add_argument(
     #     '--web', help="Specify locust to run test with web page.")
 
@@ -52,7 +53,6 @@ def main():
     # Host to test
     parser.add_argument(
         '-H', '--host',
-        default='http://10.0.3.50',
         help="Host to load test in the following format: http://10.0.3.50")
 
     # Port of web page
@@ -83,7 +83,6 @@ def main():
 
 
 def main_locust(args):
-    # todo: default locust.py
     locustfile = args.locustfile
     if not locustfile:
         logger.error("locustfile must be specified! use the -f option.")
